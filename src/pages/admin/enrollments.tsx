@@ -23,6 +23,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
 type Option = { value: string; label: string };
 
 function OptionSelect({
@@ -104,6 +113,21 @@ export default function AdminEnrollmentsPage() {
             setFormCourse(null);
         }
     };
+
+    // หนึ่งแถวต่อหนึ่ง enrollment ตรงๆ ไม่จัดกลุ่ม
+    const rows = enrollments;
+
+    // แปลง studentId/courseId → ชื่อที่อ่านง่าย (join ข้อมูล enrollments กับ students/courses)
+    const nameOf = (studentId: string) => {
+        const s = students.find((x) => x.studentId === studentId);
+        return s ? `${s.firstName} ${s.lastName}` : "-";
+    };
+    const titleOf = (courseId: string) =>
+        courses.find((c) => c.courseId === courseId)?.courseTitle ?? "-";
+    // const rows = enrollments;: ดึงข้อมูลรายการลงทะเบียนทั้งหมดจาก Store มาเก็บไว้ในตัวแปร rows โดยยึดหลัก 1 แถวในตาราง = 1 รายการลงทะเบียน ตรงๆ ตัว
+    // ฟังก์ชันแปลงรหัสเป็นชื่อ(nameOf และ titleOf): ใน Store ของการลงทะเบียน เราจะเก็บแค่รหัส(studentId กับ courseId) เพื่อความประหยัดและถูกต้อง
+    // แต่เวลาเอามาแสดงผลให้คนอ่าน เราต้องใช้ฟังก์ชัน.find() วิ่งไปค้นหาชื่อเต็มจากอาเรย์ students และ courses มาแปลงร่างให้กลายเป็นชื่อ - นามสกุล และชื่อวิชาที่มนุษย์อ่านรู้เรื่อง(ถ้าหาไม่พบจะคืนค่าเป็น -)
+
     return (
         <div className="space-y-4">
             <div>
@@ -168,6 +192,41 @@ export default function AdminEnrollmentsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <div className="rounded-lg border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>รหัสนักศึกษา</TableHead>
+                            <TableHead>ชื่อ-นามสกุล</TableHead>
+                            <TableHead>รหัสวิชา</TableHead>
+                            <TableHead>ชื่อวิชา</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {/* กรณีที่ยังไม่มีข้อมูลการลงทะเบียน */}
+                        {rows.length === 0 && (
+                            <TableRow>
+                                <TableCell
+                                    colSpan={4}
+                                    className="h-20 text-center text-muted-foreground"
+                                >
+                                    ไม่พบข้อมูลการลงทะเบียน
+                                </TableCell>
+                            </TableRow>
+                        )}
+
+                        {/* กรณีที่มีข้อมูล จะทำการลูปแสดงผลทีละแถว */}
+                        {rows.map((e) => (
+                            <TableRow key={`${e.studentId}-${e.courseId}`}>
+                                <TableCell>{e.studentId}</TableCell>
+                                <TableCell>{nameOf(e.studentId)}</TableCell>
+                                <TableCell>{e.courseId}</TableCell>
+                                <TableCell>{titleOf(e.courseId)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 }
