@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { ThemeProvider } from "@/components/theme-provider";
 import RootLayout from "@/layouts/root-layout";
 import HomePage from "@/pages/home";
+import AdminEnrollmentsPage from "./pages/admin/enrollments";
 
 import "./index.css";
 
@@ -14,7 +15,8 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      // ขั้นตอนที่ 7-10: เพิ่ม route { path: "admin/enrollments", element: <AdminEnrollmentsPage /> }
+      // ขั้นตอนที่ 7-10: เพิ่ม route 
+      { path: "admin/enrollments", element: <AdminEnrollmentsPage /> }
     ],
   },
 ]);
