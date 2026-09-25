@@ -32,6 +32,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 type Option = { value: string; label: string };
 
 function OptionSelect({
@@ -78,6 +80,13 @@ export default function AdminEnrollmentsPage() {
     const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
     // enrollDialogOpen: ควบคุมว่าหน้าต่างป๊อปอัป (Dialog) กำลังเปิด (true) หรือปิด (false) อยู่
 
+    const [mode, setMode] = useState<"course" | "student">("course");
+    const [filterCourse, setFilterCourse] = useState("all");
+    const [filterStudent, setFilterStudent] = useState("all");
+    // mode: เก็บสถานะว่าตอนนี้เรากำลังดูข้อมูลแบบไหนอยู่(เริ่มต้นเป็น "course" คือดูตามวิชา)
+    // filterCourse: เก็บค่ารหัสวิชาที่ใช้กรองข้อมูล(เริ่มต้นเป็น "all" คือแสดงทุกวิชา)
+    // filterStudent: เก็บค่ารหัสนักศึกษาที่ใช้กรองข้อมูล(เริ่มต้นเป็น "all" คือแสดงทุกคน)
+
     // แปลงข้อมูลจาก store เป็นรูปแบบ { value, label } ที่ OptionSelect ต้องการ
     const studentOptions: Option[] = students.map((s) => ({
         value: s.studentId,
@@ -115,7 +124,14 @@ export default function AdminEnrollmentsPage() {
     };
 
     // หนึ่งแถวต่อหนึ่ง enrollment ตรงๆ ไม่จัดกลุ่ม
-    const rows = enrollments;
+    const rows = enrollments.filter((e) =>
+        mode === "course"
+            ? filterCourse === "all" || e.courseId === filterCourse
+            : filterStudent === "all" || e.studentId === filterStudent,
+    );
+    // อยู่โหมด "course"(ค้นหาตามวิชา):
+    // ถ้าเลือก filterCourse === "all" ➡️ จะแสดงผลการลงทะเบียนของ ทุกวิชา
+    // ถ้าเลือกเจาะจงรหัสวิชาใดวิชาหนึ่ง(เช่น e.courseId === filterCourse) ➡️ จะแสดงเฉพาะเด็กที่ลงเรียนวิชานั้นๆ
 
     // แปลง studentId/courseId → ชื่อที่อ่านง่าย (join ข้อมูล enrollments กับ students/courses)
     const nameOf = (studentId: string) => {
@@ -192,6 +208,32 @@ export default function AdminEnrollmentsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <Tabs value={mode} onValueChange={(v) => setMode(v as "course" | "student")}>
+                <TabsList>
+                    <TabsTrigger value="course">ค้นหาตามวิชา</TabsTrigger>
+                    <TabsTrigger value="student">ค้นหาตามนักศึกษา</TabsTrigger>
+                </TabsList>
+
+                {/* เนื้อหาที่จะแสดงเมื่อเลือก Tab "ค้นหาตามวิชา" */}
+                <TabsContent value="course" className="pt-2">
+                    <OptionSelect
+                        id="filterCourse"
+                        options={[{ value: "all", label: "ทุกวิชา" }, ...courseOptions]}
+                        value={filterCourse}
+                        onChange={setFilterCourse}
+                    />
+                </TabsContent>
+
+                {/* เนื้อหาที่จะแสดงเมื่อเลือก Tab "ค้นหาตามนักศึกษา" */}
+                <TabsContent value="student" className="pt-2">
+                    <OptionSelect
+                        id="filterStudent"
+                        options={[{ value: "all", label: "ทุกคน" }, ...studentOptions]}
+                        value={filterStudent}
+                        onChange={setFilterStudent}
+                    />
+                </TabsContent>
+            </Tabs>
             <div className="rounded-lg border">
                 <Table>
                     <TableHeader>
